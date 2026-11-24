@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ebb</title>
+  <meta name="description" content="Ebb plans your day by energy, not time. A 20-second check-in sets today's energy budget, then Ebb puts hard tasks in your peaks, easy ones in your dips, adds recovery, and gently moves the rest to tomorrow." />
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Lexend:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/app.css?v=1" />
+  <script>
+    try {
+      const a = JSON.parse(localStorage.getItem('ebb:a11y') || '{}');
+      const d = document.documentElement;
+      if (a.theme) d.dataset.theme = a.theme;
+      if (a.size) d.style.setProperty('--scale', a.size);
+      if (a.font) d.dataset.font = a.font;
+      if (a.motion) d.dataset.motion = a.motion;
+      if (a.contrast) d.dataset.contrast = a.contrast;
+    } catch {}
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to your plan</a>
+  <header class="top">
+    <a class="brand" href="#" aria-label="Ebb home">
+      <svg viewBox="0 0 40 24" aria-hidden="true"><path d="M2 14c4-8 8-8 12 0s8 8 12 0 8-8 12 0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+      <span>Ebb</span>
+    </a>
+    <p class="tag">Plan your day by energy, not time.</p>
+    <div class="top-actions">
+      <button class="btn ghost" id="btn-sample">Try a sample day</button>
+      <button class="btn ghost" id="btn-a11y" aria-expanded="false" aria-controls="a11y"><span aria-hidden="true">Aa</span> Display</button>
+    </div>
+  </header>
+
+  <div class="a11y card" id="a11y" hidden role="region" aria-label="Display and accessibility settings">
+    <div class="a11y-row"><span>Text size</span>
+      <div class="seg" data-a11y="size"><button data-v="1">A</button><button data-v="1.15">A+</button><button data-v="1.3">A++</button></div></div>
+    <div class="a11y-row"><span>Font</span>
+      <div class="seg" data-a11y="font"><button data-v="atkinson">Hyperlegible</button><button data-v="lexend">Lexend (easier reading)</button></div></div>
+    <div class="a11y-row"><span>Theme</span>
+      <div class="seg" data-a11y="theme"><button data-v="light">Light</button><button data-v="dark">Dark</button></div></div>
+    <div class="a11y-row"><span>Motion</span>
+      <div class="seg" data-a11y="motion"><button data-v="full">On</button><button data-v="reduce">Reduced</button></div></div>
+    <div class="a11y-row"><span>Contrast</span>
+      <div class="seg" data-a11y="contrast"><button data-v="normal">Normal</button><button data-v="high">High</button></div></div>
+  </div>
+
+  <main id="main">
+    <section class="layout">
+      <!-- LEFT: check-in + tasks -->
+      <div class="col">
+        <section class="card checkin" aria-labelledby="ci-h">
+          <div class="step">1</div>
+          <h2 id="ci-h">How’s your battery today?</h2>
+          <p class="sub">Tap the spoons you have. Be honest: Ebb plans for the day you have, not the day you wish you had.</p>
+          <div class="spoons" id="spoons" role="radiogroup" aria-label="Energy today, 1 to 12 spoons"></div>
+          <p class="battery-read" id="battery-read" aria-live="polite"></p>
+
+          <fieldset class="chips" aria-label="Sleep last night">
+            <legend>Sleep</legend>
+            <label><input type="radio" name="sleep" value="rested" /> <span>Rested</span></label>
+            <label><input type="radio" name="sleep" value="ok" checked /> <span>OK</span></label>
+            <label><input type="radio" name="sleep" value="rough" /> <span>Rough</span></label>
+          </fieldset>
+          <fieldset class="chips" aria-label="Anything else today">
+            <legend>Today</legend>
+            <label><input type="checkbox" name="pain" /> <span>Pain or flare-up</span></label>
+            <label><input type="checkbox" name="fog" /> <span>Brain fog</span></label>
+          </fieldset>
+          <div class="row2">
+            <label class="field">When are you sharpest?
+              <select id="chronotype">
+                <option value="lark">Morning person</option>
+                <option value="afternoon">Midday peak</option>
+                <option value="owl">Night owl</option>
+              </select>
+            </label>
+            <label class="field">Day runs
+              <span class="hours"><select id="start-hour" aria-label="Day starts"></select><span aria-hidden="true">–</span><select id="end-hour" aria-label="Day ends"></select></span>
+            </label>
+          </div>
+        </section>
+
+        <section class="card tasks" aria-labelledby="t-h">
+          <div class="step">2</div>
+          <h2 id="t-h">What’s on your plate?</h2>
+          <form class="quick" id="quick">
+            <label class="sr" for="quick-input">Add a task</label>
+            <input id="quick-input" autocomplete="off" placeholder="e.g. Write essay 90m ⚡4 !   ·   Dentist @2pm 45m" />
+            <button class="btn primary" type="submit">Add</button>
+          </form>
+          <p class="hint">Optional: <code>90m</code> length · <code>⚡3</code> spoons · <code>!</code> must-do today · <code>@2pm</code> fixed time. Ebb guesses the rest.</p>
+          <ul class="task-list" id="task-list" aria-live="polite"></ul>
+        </section>
+      </div>
+
+      <!-- RIGHT: the plan -->
+      <div class="col">
+        <section class="card day" aria-labelledby="d-h">
+          <div class="step">3</div>
+          <div class="day-head">
+            <div>
+              <h2 id="d-h">Your day, shaped to your energy</h2>
+              <p class="sub" id="day-sub"></p>
+            </div>
+            <div class="meter" id="meter" role="img"></div>
+          </div>
+          <div class="adjust" id="adjust"></div>
+          <div class="timeline" id="timeline"></div>
+          <ol class="agenda" id="agenda"></ol>
+          <div class="day-actions">
+            <button class="btn" id="btn-ics">Add to my calendar</button>
+            <button class="btn ghost" id="btn-copy">Copy as text</button>
+          </div>
+        </section>
+
+        <section class="card tomorrow" aria-labelledby="tm-h">
+          <h2 id="tm-h">Tomorrow, gently</h2>
+          <p class="sub">Not failures. Ebb moved these so today stays doable.</p>
+          <ul class="defer" id="defer"></ul>
+        </section>
+
+        <section class="card learned" aria-labelledby="l-h">
+          <h2 id="l-h">What Ebb has learned about you</h2>
+          <p class="sub">After you finish a task, tell Ebb how it felt. It adjusts how much each kind of task costs <em>you</em>.</p>
+          <div id="learned-list" class="learned-list"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="feel" aria-labelledby="feel-h">
+    <form method="dialog">
+      <h3 id="feel-h">How did “<span id="feel-title"></span>” feel?</h3>
+      <p class="sub">Ebb will remember this for next time.</p>
+      <div class="feel-btns">
+        <button value="lighter">🪶 Lighter than expected</button>
+        <button value="expected">👌 About right</button>
+        <button value="heavier">🪨 Heavier than expected</button>
+      </div>
+      <button class="btn ghost small" value="cancel">Skip</button>
+    </form>
+  </dialog>
+
+  <footer class="foot">
+    <p>Ebb runs entirely in your browser. Nothing is uploaded; your plan is saved only on this device.</p>
+    <p>Built for <a href="https://taskforge.devpost.com/" target="_blank" rel="noopener">Taskforge</a> · <a href="https://github.com/DavidAndree/ebb" target="_blank" rel="noopener">Source</a> · Inspired by spoon theory (Christine Miserandino).</p>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="js/app.js?v=1"></script>
+</body>
+</html>
